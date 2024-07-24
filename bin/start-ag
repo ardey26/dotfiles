@@ -1,0 +1,22 @@
+# Start a new tmux session
+tmux new-session -d -s dev_session
+
+# Split the window into three panes
+tmux split-window -h
+tmux split-window -v
+tmux select-pane -L
+tmux split-window -v
+tmux select-pane -U
+
+# Kills running processes first
+lsof -i :6379 | awk 'NR>1 {print $2}' | xargs kill -9 | lsof -i :8000 | awk 'NR>1 {print $2}' | xargs kill -9
+
+# Run the commands in each pane
+tmux send-keys -t 0 'ag && python manage.py shell_plus' C-m
+tmux send-keys -t 1 'ag && python manage.py tailwind start' C-m
+tmux send-keys -t 2 'redis-server' C-m
+tmux send-keys -t 3 'ag && python manage.py migrate && python manage.py runserver' C-m
+
+
+# Attach to the session
+tmux attach-session -t dev_session
